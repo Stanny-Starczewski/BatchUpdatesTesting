@@ -29,27 +29,37 @@ final class ColorCell: UICollectionViewCell {
 final class SupplementaryCollection: NSObject, UICollectionViewDataSource {
     
     private let params: GeometricParams
+    private let collection: UICollectionView
+    // (Теперь свойство модифицируемо — оно будет хранить добавленные цвета).
+    private var colors = [UIColor]()
     
-    private let colors: [UIColor] = [
-        .black, .blue, .brown,
-        .cyan, .green, .orange,
-        .red, .purple, .yellow
-    ]
-    
-    let count: Int
-    
-    init(count: Int, using params: GeometricParams) {
-        self.count = count
+    init(using params: GeometricParams, collection: UICollectionView) {
         self.params = params
+        self.collection = collection
+        
+        super.init()
+        
+        // Зарегистрируем ячейку в коллекции.
+        // Это более правильный подход, потому что именно в классе SupplementaryCollection, в методе делегата получения ячейки, выполняется кастинг к классу ColorCell.
+        collection.register(ColorCell.self, forCellWithReuseIdentifier: ColorCell.identifier)
+        
+        // Устанавливаем делегаты. Обратите внимание: сейчас мы устанавливаем self, то есть самих себя.
+        collection.delegate = self
+        collection.dataSource = self
+        
+        collection.reloadData()
     }
+    
+    
     
     // MARK: - UICollectionViewDataSource
     
+    // (Количество элементов в коллекции будет равно длине массива).
     func collectionView(_ collectionView: UICollectionView,
                         numberOfItemsInSection section: Int) -> Int {
-        return count
+        return colors.count
     }
-    
+    //(При отображении ячейки мы будем не выбирать любой цвет из всех доступных, а устанавливать тот, который записан в массиве по соответствующему индексу).
     func collectionView(_ collectionView: UICollectionView,
                         cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ColorCell.identifier,
@@ -59,10 +69,7 @@ final class SupplementaryCollection: NSObject, UICollectionViewDataSource {
         }
         
         cell.prepareForReuse()
-        
-        // Произвольно выбираем цвет для фона ячейки:
-        cell.contentView.backgroundColor = colors[Int.random(in: 0..<colors.count)]
-        
+        cell.contentView.backgroundColor = colors[indexPath.row]
         return cell
     }
 }
@@ -128,28 +135,20 @@ let size = CGRect(origin: CGPoint(x: 0, y: 0),
 // Указываем, какой Layout хотим использовать:
 let layout = UICollectionViewFlowLayout()
 
-let collection = UICollectionView(frame: size,
-                                  collectionViewLayout: layout)
-
 //экземпляр структуры и передать её в конструктор класса-помощника:
 //(три колонки теперь)
 let params = GeometricParams(cellCount: 3,
                              leftInset: 10,
                              rightInset: 10,
                              cellSpacing: 10)
-let helper = SupplementaryCollection(count: 31, using: params)
 
 // Изменим направление скроллинга с вертикального (по умолчанию) на горизонтальное.
 layout.scrollDirection = .horizontal
 
-// Регистрируем ячейку в коллекции.
-// Регистрируя ячейку, мы сообщаем коллекции, какими типами ячеек она может распоряжаться.
-// При попытке создать ячейку с незарегистрированным идентификатором коллекция выдаст ошибку.
-collection.register(ColorCell.self, forCellWithReuseIdentifier: ColorCell.identifier)
-collection.backgroundColor = .lightGray
-collection.dataSource = helper
-collection.delegate = helper
-
+// Добавить
+let collection = UICollectionView(frame: size,
+                                  collectionViewLayout: layout)
+collection.backgroundColor = .white
 PlaygroundPage.current.liveView = collection
 
-collection.reloadData()
+let helper = SupplementaryCollection(using: params, collection: collection)
