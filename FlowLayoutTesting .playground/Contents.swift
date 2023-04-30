@@ -48,9 +48,21 @@ final class SupplementaryCollection: NSObject, UICollectionViewDataSource {
         collection.dataSource = self
         
         collection.reloadData()
+        
     }
     
-    
+    func add(colors values: [UIColor]) {
+        
+        guard !values.isEmpty else { return }
+        
+        let count = colors.count
+        colors = colors + values
+        
+        collection .performBatchUpdates {
+            let indexes = (count..<colors.count).map { IndexPath(row: $0, section: 0) }
+            collection.insertItems(at: indexes)
+        }
+    }
     
     // MARK: - UICollectionViewDataSource
     
@@ -132,6 +144,8 @@ struct GeometricParams {
 //(изменим размеры коллекции и параметры нашего FlowLayout - height: 400)
 let size = CGRect(origin: CGPoint(x: 0, y: 0),
                   size: CGSize(width: 400, height: 400))
+//(Теперь общий размер будет отвечать не за конкретные размеры представления коллекции, а за размеры главного View, в котором будут размещаться все элементы)
+let view = UIView(frame: size)
 // Указываем, какой Layout хотим использовать:
 let layout = UICollectionViewFlowLayout()
 
@@ -149,6 +163,44 @@ layout.scrollDirection = .horizontal
 let collection = UICollectionView(frame: size,
                                   collectionViewLayout: layout)
 collection.backgroundColor = .white
-PlaygroundPage.current.liveView = collection
-
+//PlaygroundPage.current.liveView = collection
+PlaygroundPage.current.liveView = view
 let helper = SupplementaryCollection(using: params, collection: collection)
+
+collection.translatesAutoresizingMaskIntoConstraints = false
+view.addSubview(collection)
+
+// Создадим стандартную кнопку с экшеном.
+// Обратите внимание, что экземпляр helper удерживается по weak ссылке.
+let addButton = UIButton(type: .roundedRect, primaryAction: UIAction(title: "Add color", handler: { [weak helper] _ in
+    
+    // Массив доступных цветов
+    let colors: [UIColor] = [
+        .black, .blue, .brown,
+        .cyan, .green, .orange,
+        .red, .purple, .yellow
+    ]
+    
+    // Произвольно выберем два цвета из массива
+    let selectedColors = (0..<2).map { _ in colors[Int.random(in: 0..<colors.count)] }
+    // Добавим выбранные цвета в коллекцию через ранее созданный экземпляр helper
+    helper?.add(colors: selectedColors)
+}))
+// Добавим кнопку в главное View
+addButton.translatesAutoresizingMaskIntoConstraints = false
+view.addSubview(addButton)
+
+NSLayoutConstraint.activate([
+    // Границы коллекции слева, справа и сверху совпадают с главным View
+    collection.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+    collection.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+    collection.topAnchor.constraint(equalTo: view.topAnchor),
+    // Высота — 80% от высоты главного View
+    collection.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.8),
+    // Границы кнопки слева, справа и снизу совпадают с главным View
+    addButton.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+    addButton.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+    addButton.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+    // Высота кнопки 30
+    addButton.heightAnchor.constraint(equalToConstant: 30)
+])
