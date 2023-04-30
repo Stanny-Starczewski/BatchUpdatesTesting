@@ -121,6 +121,16 @@ extension SupplementaryCollection: UICollectionViewDelegateFlowLayout {
         params.cellSpacing
     }
     
+    //(метод делегата, в котором мы будем удалять выбранный элемент:)
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        // Удаляем из массива элемент с индексом
+        colors.remove(at: indexPath.row)
+            
+        collectionView.performBatchUpdates {
+            collectionView.deleteItems(at: [indexPath])
+        }
+    }
+    
 }
 
 struct GeometricParams {
