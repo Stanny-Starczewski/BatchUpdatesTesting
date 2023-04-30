@@ -71,6 +71,7 @@ final class SupplementaryCollection: NSObject, UICollectionViewDataSource {
 extension SupplementaryCollection: UICollectionViewDelegateFlowLayout {
     
     //задает размеры ячейки коллекции (Расчёт размеров ячейки выполняем на основе значений из структуры params.paddingWidth)
+    // (изменим возвращаемый размер ячейки)
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
             
         let availableWidth = collectionView.frame.width - params.paddingWidth
@@ -83,7 +84,7 @@ extension SupplementaryCollection: UICollectionViewDelegateFlowLayout {
             height = 1 / 3
         }
         return CGSize(width: cellWidth,
-                     height: cellWidth * height)
+                     height: cellWidth * 2 / 3)
     }
     
     //задаeт отступы от краёв коллекци
@@ -121,8 +122,9 @@ struct GeometricParams {
 }
 
 // Размеры для коллекции:
+//(изменим размеры коллекции и параметры нашего FlowLayout - height: 400)
 let size = CGRect(origin: CGPoint(x: 0, y: 0),
-                  size: CGSize(width: 400, height: 600))
+                  size: CGSize(width: 400, height: 400))
 // Указываем, какой Layout хотим использовать:
 let layout = UICollectionViewFlowLayout()
 
@@ -130,7 +132,8 @@ let collection = UICollectionView(frame: size,
                                   collectionViewLayout: layout)
 
 //экземпляр структуры и передать её в конструктор класса-помощника:
-let params = GeometricParams(cellCount: 2,
+//(три колонки теперь)
+let params = GeometricParams(cellCount: 3,
                              leftInset: 10,
                              rightInset: 10,
                              cellSpacing: 10)
@@ -150,17 +153,3 @@ collection.delegate = helper
 PlaygroundPage.current.liveView = collection
 
 collection.reloadData()
-
-//так это то куда?
-
-/*
- // Количество столбцов
- let cellsPerRow = 4
- // leftInset и rightInset — отступы слева и справа от границ коллекции, cellSpacing — расстояние между ячейками
- let paddingWidth: CGFloat = leftInset + rightInset + (cellsPerRow - 1) * cellSpacing
- // Доступная ширина после вычета отступов
- let availableWidth = collectionView.frame.width - paddingWidth
- // Ширина ячейки
- let cellWidth =  availableWidth / CGFloat(cellsPerRow)
- return CGSize(width: cellWidth, height: cellWidth * 2 / 3)
- */
