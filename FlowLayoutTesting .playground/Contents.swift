@@ -123,11 +123,24 @@ extension SupplementaryCollection: UICollectionViewDelegateFlowLayout {
     
     //(метод делегата, в котором мы будем удалять выбранный элемент:)
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        // Удаляем из массива элемент с индексом
-        colors.remove(at: indexPath.row)
-            
+        
+        // Сохраняем выбранный цвет.
+            let color = colors[indexPath.row]
+        // Создаём массив, записываем туда индексы массива, в которых содержится такой же цвет.
+            var indexes: [Int] = []
+        // Нам нужно получить индексы элементов, поэтому пройдёмся по индексированному списку.
+            colors.enumerated().forEach { index, element in
+                if element == color { indexes.append(index) }
+            }
+        // Удалим из массива colors все элементы под индексами, начиная с последнего.
+            // В противном случае, при удалении с начала массива индексы будут смещаться и указывать на некорректные значения.
+            indexes.reversed().forEach { colors.remove(at: $0) }
+        // Выполним анимированное удаление из коллекции.
         collectionView.performBatchUpdates {
-            collectionView.deleteItems(at: [indexPath])
+            let indexPaths = indexes.map {
+                IndexPath(row: $0, section: 0)
+            }
+            collectionView.deleteItems(at: indexPaths)
         }
     }
     
